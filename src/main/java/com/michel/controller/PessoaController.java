@@ -1,31 +1,48 @@
 package com.michel.controller;
 
 import com.michel.dto.PessoaDTO;
+import com.michel.exception.PessoaException;
 import com.michel.service.PessoaService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.sun.xml.internal.ws.wsdl.writer.document.soap12.Body;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.xml.ws.Response;
 import java.util.List;
 
-@RestController
-@RequestMapping(value = "/pessoa")
-public class PessoaController {
-    @Autowired
-    private PessoaService service;
+import static org.springframework.http.ResponseEntity.ok;
 
-    @GetMapping(value = "/{id}")
-    public ResponseEntity<PessoaDTO> ReadPessoa(@PathVariable Long id) {
-        PessoaDTO dto = service.readPessoa(id);
-        return ResponseEntity.ok().body(dto);
+@RestController
+public class PessoaController {
+    private PessoaService service;
+    public PessoaController(PessoaService service){
+        this.service=service;
+    }
+    @GetMapping("/")
+    public String mensagem() {
+        return "Sistema WEB para o SENAI Paraná";
+    }
+    @GetMapping(value = "/pessoa/{id}")
+    public ResponseEntity<PessoaDTO> ReadById(@PathVariable Long id)  throws PessoaException{
+        PessoaDTO dto = service.read(id);
+        return ok().body(dto);
+    }
+    @GetMapping(value = "/pessoa/findall")
+    public ResponseEntity<List<PessoaDTO>> findAll() {
+        List<PessoaDTO> dto = service.findall();
+        return ok().body(dto);
     }
 
-    @GetMapping(value = "/buscatodos")
-    public ResponseEntity<List<PessoaDTO>> ReadAlppPessoas() {
-        List<PessoaDTO> dto = service.findAll();
-        return ResponseEntity.ok().body(dto);
+    @PostMapping(value = "/pessoa/")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity Create(@RequestBody PessoaDTO dto) {
+        service.create(dto);
+        return ok().body(dto);
+    }
+    @DeleteMapping("/pessoa/{id}")
+    public ResponseEntity<PessoaDTO> DeleteById(@PathVariable Long id)  throws PessoaException {
+        PessoaDTO dto = service.delete(id);
+            return ok().body(dto);
     }
 }

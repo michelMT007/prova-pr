@@ -1,30 +1,57 @@
 package com.michel.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.michel.dto.PessoaDTO;
 import com.michel.entities.Pessoa;
-import com.michel.mapper.PessoaMapper;
 import com.michel.repositories.PessoaRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-@Service
-public class PessoaService {
+
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+@Component
+public class PessoaService  {
+    @Autowired
+    private ModelMapper mapper;
+
     @Autowired
     private PessoaRepository repository;
+    @Transactional
+    public PessoaDTO read(Long id) {
+        Pessoa pessoa = repository.findById(id).get();
+        if (pessoa != null) {
+            return mapper.map(pessoa, PessoaDTO.class);
+        }else {
 
-    private PessoaMapper mapper = PessoaMapper.INSTANCE;
-
-    @Transactional(readOnly=true)
-    public List<PessoaDTO> findAll() {
-        List<Pessoa> list = repository.findAll();
-        return list.stream().map(x -> new PessoaDTO(x)).collect(Collectors.toList());
+            return null;
+        }
     }
     @Transactional
-    public PessoaDTO readPessoa(Long id)  {
-        repository.findById(id);
-        return mapper.toDTO(repository.findById(id));
+    public List<PessoaDTO> findall()  {
+        List<Pessoa> list = repository.findAll();
+        List<PessoaDTO> dtos=new ArrayList<PessoaDTO>();
+        for (Pessoa elemento :list) {
+
+            dtos.add(mapper.map(elemento , PessoaDTO.class));
+        }
+        return dtos;
+    }
+    @Transactional
+    public void create(PessoaDTO dto)  {
+        repository.save(mapper.map(dto, Pessoa.class));
+    }
+    @Transactional
+    public PessoaDTO delete(Long id)  {
+        PessoaDTO dto = read(id);
+        if( dto!= null) {
+            repository.deleteById(id);
+            return dto;
+        }else{
+            return null;
+        }
     }
 }
